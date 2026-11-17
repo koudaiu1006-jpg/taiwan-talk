@@ -1,0 +1,4 @@
+parts/
+build.py
+make_icon.py
+test_logic.js

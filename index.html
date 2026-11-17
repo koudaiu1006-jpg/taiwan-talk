@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFF7EF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="台湾華語ワンタップ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>台湾華語 ワンタップ｜台湾の家族と話す</title>
+<meta name="description" content="相槌はワンタップ、伝えたいことは単語を並べて台湾華語（繁體字）の文に。音声読み上げつき。">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<style>
+  :root{
+    --bg:#FFF7EF;
+    --bg-deep:#FBEEDF;
+    --card:#FFFFFF;
+    --ink:#20252B;
+    --ink-2:#5A6470;
+    --ink-3:#9099A3;
+    --teal:#127C78;
+    --teal-deep:#0B5F5C;
+    --teal-soft:#DCF0EE;
+    --orange:#EF7A4A;
+    --orange-deep:#C5532A;
+    --orange-soft:#FCE7DC;
+    --line:rgba(32,37,43,.10);
+    --sh:0 4px 14px rgba(85,55,30,.07), 0 1px 2px rgba(85,55,30,.05);
+    --r:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  html{background:linear-gradient(180deg,var(--bg) 0%,var(--bg-deep) 100%);background-attachment:fixed;min-height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP","Meiryo",sans-serif;
+    color:var(--ink);min-height:100vh;line-height:1.5;-webkit-text-size-adjust:100%;
+    font-feature-settings:"palt" 0;
+  }
+  body.locked{overflow:hidden}
+  button{font-family:inherit;color:inherit}
+
+  /* ---------- ヘッダー ---------- */
+  .top{
+    position:sticky;top:0;z-index:40;
+    background:rgba(255,247,239,.96);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+    padding:calc(env(safe-area-inset-top,0px) + 7px) 12px 9px;
+  }
+  .brand{display:flex;align-items:center;gap:8px;margin:0 2px 7px}
+  .brand .flag{font-size:1.05rem;line-height:1}
+  .brand h1{font-size:.92rem;margin:0;font-weight:800;letter-spacing:.01em}
+  .brand .sub{margin-left:auto;font-size:.66rem;color:var(--ink-3);font-weight:700;letter-spacing:.02em}
+
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .tab{
+    appearance:none;border:1px solid var(--line);background:#fff;
+    border-radius:14px;min-height:44px;padding:6px 4px;cursor:pointer;
+    font-size:.86rem;font-weight:800;color:var(--ink-2);
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    transition:background .16s,color .16s,border-color .16s,box-shadow .16s,transform .1s;
+  }
+  .tab:active{transform:scale(.985)}
+  .tab.on{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 5px 14px rgba(18,124,120,.24)}
+  .tab .t-i{font-size:.95rem}
+
+  /* ---------- 単語トレイ ---------- */
+  #tray-dock{margin-top:8px}
+  #tray-dock[hidden]{display:none}
+  .tray-head{display:flex;align-items:center;gap:6px;margin:0 2px 4px}
+  .tray-head .lbl{font-size:.68rem;font-weight:800;color:var(--ink-3);letter-spacing:.04em}
+  .tray-head .count{font-size:.66rem;font-weight:800;color:var(--teal);margin-left:auto}
+  .tray{
+    display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+    min-height:46px;max-height:92px;overflow-y:auto;
+    padding:7px 8px;border-radius:14px;background:#fff;
+    border:1.5px dashed rgba(18,124,120,.34);
+  }
+  .tray-empty{font-size:.76rem;color:var(--ink-3);font-weight:600;padding:2px 2px}
+  .pill{
+    appearance:none;border:1px solid rgba(18,124,120,.20);background:var(--teal-soft);
+    color:var(--teal-deep);border-radius:999px;padding:5px 9px 5px 11px;
+    font-size:.84rem;font-weight:800;display:inline-flex;align-items:center;gap:5px;
+    line-height:1.25;cursor:pointer;
+  }
+  .pill .x{font-size:.82rem;opacity:.55;font-weight:700}
+  .tray-actions{display:flex;gap:7px;margin-top:7px}
+  .btn-clear{
+    appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink-2);
+    border-radius:13px;padding:0 14px;height:48px;font-size:.8rem;font-weight:800;cursor:pointer;
+  }
+  .btn-ok{
+    flex:1;appearance:none;border:0;border-radius:14px;height:48px;cursor:pointer;
+    background:linear-gradient(180deg,#F58A5B,var(--orange) 60%,var(--orange-deep));
+    color:#fff;font-size:1rem;font-weight:900;letter-spacing:.04em;
+    box-shadow:0 6px 16px rgba(196,84,42,.28);
+    transition:transform .1s,box-shadow .16s,filter .16s;
+  }
+  .btn-ok:active{transform:translateY(1px) scale(.995)}
+  .btn-ok:disabled{
+    background:#E7E1DA;color:#B0A79E;box-shadow:none;cursor:default;
+  }
+
+  /* ---------- パネル ---------- */
+  main{padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 26px)}
+  .panel{display:none}
+  .panel.on{display:block}
+
+  .search{
+    display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;height:42px;padding:0 12px;margin-bottom:9px;box-shadow:var(--sh);
+  }
+  .search span{font-size:.95rem;opacity:.45}
+  .search input{
+    flex:1;border:0;outline:0;background:transparent;font-size:.92rem;min-width:0;
+    height:100%;font-family:inherit;color:var(--ink);
+  }
+  .search input::placeholder{color:var(--ink-3)}
+
+  .cats{
+    display:flex;gap:7px;overflow-x:auto;padding:1px 1px 9px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .cats::-webkit-scrollbar{display:none}
+  .cat{
+    appearance:none;flex:0 0 auto;border:1px solid var(--line);background:#fff;
+    border-radius:999px;padding:8px 13px;font-size:.8rem;font-weight:800;color:var(--ink-2);
+    cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;
+    transition:background .14s,color .14s,border-color .14s;
+  }
+  .cat .cat-i{font-size:.86rem}
+  .cat .cat-s{font-size:.62rem;color:var(--ink-3);font-weight:700}
+  .cat.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  .cat.on .cat-s{color:rgba(255,255,255,.8)}
+  .cat:active{transform:scale(.98)}
+
+  /* ---------- ひとことカード ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .ph{
+    appearance:none;text-align:left;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:10px 11px;min-height:70px;box-shadow:var(--sh);
+    display:flex;flex-direction:column;justify-content:center;gap:2px;cursor:pointer;
+    transition:transform .1s,box-shadow .16s,border-color .16s;
+  }
+  .ph:active{transform:scale(.97);box-shadow:0 2px 8px rgba(85,55,30,.10)}
+  .ph-ja{font-size:.72rem;color:var(--ink-2);font-weight:700;letter-spacing:.01em}
+  .ph-zh{
+    font-family:"Noto Sans TC","PingFang TC","Hiragino Sans","Yu Gothic",sans-serif;
+    font-size:1.06rem;font-weight:900;color:var(--teal-deep);line-height:1.32;
+    letter-spacing:.01em;word-break:break-word;
+  }
+
+  /* ---------- 単語チップ ---------- */
+  .grid.words{grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:8px}
+  .chip{
+    appearance:none;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    min-height:58px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:1px;box-shadow:var(--sh);cursor:pointer;
+    transition:transform .1s,box-shadow .16s;
+  }
+  .chip:active{transform:scale(.95)}
+  .c-ja{font-size:.7rem;color:var(--ink-2);font-weight:700;line-height:1.2}
+  .c-zh{
+    font-family:"Noto Sans TC","PingFang TC","Hiragino Sans",sans-serif;
+    font-size:.95rem;font-weight:900;color:var(--teal-deep);line-height:1.25;
+  }
+  .empty{
+    grid-column:1/-1;text-align:center;color:var(--ink-3);font-size:.8rem;
+    padding:22px 10px;font-weight:600;
+  }
+
+  /* ---------- マイ単語 ---------- */
+  .mine-add{
+    grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:10px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:7px;
+  }
+  .mine-row{display:flex;gap:7px}
+  .mine-row input,.mine-row select{
+    flex:1;min-width:0;height:42px;border:1px solid var(--line);border-radius:11px;
+    padding:0 10px;font-size:.86rem;font-family:inherit;background:#FCFAF7;color:var(--ink);
+  }
+  .mine-btn{
+    flex:0 0 auto;appearance:none;border:0;border-radius:11px;padding:0 14px;height:42px;
+    background:var(--teal);color:#fff;font-weight:800;font-size:.86rem;cursor:pointer;
+  }
+  .mine-note{margin:0;font-size:.66rem;color:var(--ink-3);font-weight:600}
+  .mine-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:8px}
+
+  /* ---------- 全画面カード ---------- */
+  .modal{
+    position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,#FFFDF9 0%,#FFF6EC 100%);
+    opacity:0;transition:opacity .18s ease;
+    padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);
+  }
+  .modal[hidden]{display:none}
+  .modal.on{opacity:1}
+  .card-top{display:flex;align-items:center;gap:8px}
+  .card-tag{
+    font-size:.66rem;font-weight:900;letter-spacing:.14em;color:var(--teal);
+    background:var(--teal-soft);border-radius:999px;padding:5px 11px;
+  }
+  .card-close{
+    margin-left:auto;appearance:none;border:1px solid var(--line);background:#fff;
+    width:42px;height:42px;border-radius:50%;font-size:1.15rem;line-height:1;color:var(--ink-2);
+    cursor:pointer;box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;
+  }
+  .card-body{
+    flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;gap:12px;padding:6px 0 4px;overflow-y:auto;
+  }
+  .card-ja{font-size:1rem;font-weight:800;color:var(--ink-2);letter-spacing:.01em}
+  .card-zh{
+    font-family:"Noto Sans TC","PingFang TC","Hiragino Sans","Yu Gothic",sans-serif;
+    font-weight:900;color:#152220;line-height:1.34;letter-spacing:.015em;
+    word-break:break-word;font-size:clamp(2rem,15vw,6rem);
+  }
+  .card-kana{
+    font-size:1rem;font-weight:800;color:var(--orange-deep);letter-spacing:.03em;
+    line-height:1.5;
+  }
+  .card-py{font-size:.82rem;color:var(--ink-3);letter-spacing:.02em;font-weight:600}
+  .card-note{
+    font-size:.7rem;color:var(--orange-deep);background:var(--orange-soft);
+    border-radius:999px;padding:5px 12px;font-weight:700;display:none;
+  }
+  .card-foot{display:flex;gap:9px;align-items:center;justify-content:center;padding-top:6px}
+  .btn-speak{
+    appearance:none;border:0;border-radius:999px;height:56px;padding:0 26px;
+    background:linear-gradient(180deg,#1A8E89,var(--teal) 60%,var(--teal-deep));
+    color:#fff;font-size:1rem;font-weight:900;letter-spacing:.03em;cursor:pointer;
+    box-shadow:0 8px 20px rgba(18,124,120,.26);display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-speak:active{transform:translateY(1px) scale(.99)}
+  .card-hint{
+    text-align:center;font-size:.64rem;color:var(--ink-3);margin:8px 0 0;font-weight:600;
+  }
+
+  /* ---------- トースト ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+    transform:translate(-50%,14px);z-index:200;
+    background:rgba(32,37,43,.94);color:#fff;font-size:.8rem;font-weight:700;
+    padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;
+    transition:opacity .18s,transform .18s;max-width:88vw;text-align:center;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  @media (min-width:520px){
+    main{max-width:560px;margin:0 auto}
+    .top{padding-left:16px;padding-right:16px}
+    .top > *{max-width:560px;margin-left:auto;margin-right:auto}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="flag">🇹🇼</span>
+    <h1>台湾華語 ワンタップ</h1>
+    <span class="sub">家族と その場で</span>
+  </div>
+  <nav class="tabs">
+    <button class="tab on" data-tab="say"><span class="t-i">💬</span>ひとこと</button>
+    <button class="tab" data-tab="build"><span class="t-i">🧩</span>ことばで文</button>
+  </nav>
+
+  <div id="tray-dock" hidden>
+    <div class="tray-head">
+      <span class="lbl">えらんだ ことば</span>
+      <span class="count" id="tray-count"></span>
+    </div>
+    <div class="tray" id="tray"></div>
+    <div class="tray-actions">
+      <button class="btn-clear" id="clear">クリア</button>
+      <button class="btn-ok" id="ok" disabled>OK！ 文にする</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ① ひとこと -->
+  <section class="panel on" id="tab-say">
+    <div class="search">
+      <span>🔍</span>
+      <input id="say-search" type="search" placeholder="日本語・中文・ピンインで探す" autocomplete="off">
+    </div>
+    <div class="cats" id="say-cats"></div>
+    <div class="grid" id="say-grid"></div>
+    <p class="card-hint">タップすると大きな文字で出ます・🔊で発音</p>
+  </section>
+
+  <!-- ② ことばで文 -->
+  <section class="panel" id="tab-build">
+    <div class="search">
+      <span>🔍</span>
+      <input id="word-search" type="search" placeholder="ことばを探す（例：トイレ）" autocomplete="off">
+    </div>
+    <div class="cats" id="word-cats"></div>
+    <div class="grid words" id="word-grid"></div>
+    <p class="card-hint">ことばを順番にタップ → 「OK！」で台湾華語の文に</p>
+  </section>
+</main>
+
+<!-- 全画面カード -->
+<div class="modal" id="modal" hidden>
+  <div class="card-top">
+    <span class="card-tag">台灣華語</span>
+    <button class="card-close" aria-label="閉じる">×</button>
+  </div>
+  <div class="card-body">
+    <div class="card-ja" id="card-ja"></div>
+    <div class="card-zh" id="card-zh"></div>
+    <div class="card-kana" id="card-kana"></div>
+    <div class="card-py" id="card-py"></div>
+    <div class="card-note" id="card-note"></div>
+  </div>
+  <div class="card-foot">
+    <button class="btn-speak" id="speak">🔊 発音を聞く</button>
+  </div>
+  <p class="card-hint">画面を相手に見せながら話せます</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   データ：ひとこと（相槌・よく使う表現）と ことば（単語）
+   ============================================================ */
+
+const PHRASE_CATS = [
+  { id: 'aizuchi', icon: '💬', label: '相槌' },
+  { id: 'greet',   icon: '🙏', label: '挨拶・お礼' },
+  { id: 'care',    icon: '💗', label: '気遣い・体調' },
+  { id: 'food',    icon: '🍜', label: '食事・買物' },
+  { id: 'move',    icon: '🚗', label: '移動・写真' },
+  { id: 'drive',   icon: '🛞', label: '車内・ドライブ' },
+  { id: 'view',    icon: '🍁', label: '景色・感想' }
+];
+
+const PHRASES = [
+  /* ---------- 相槌・リアクション ---------- */
+  {c:'aizuchi', ja:'なるほど！',        zh:'原來如此！',    py:'yuánlái rúcǐ',           k:'ユエンライ ルーツー'},
+  {c:'aizuchi', ja:'すごい！',          zh:'好厲害！',      py:'hǎo lìhài',              k:'ハオ リーハイ'},
+  {c:'aizuchi', ja:'本当？',            zh:'真的嗎？',      py:'zhēn de ma',             k:'ジェン ダ マ'},
+  {c:'aizuchi', ja:'そうなんだ',        zh:'這樣啊',        py:'zhèyàng a',              k:'ジャーヤン ア'},
+  {c:'aizuchi', ja:'いいね！',          zh:'不錯喔！',      py:'búcuò o',                k:'プーツオ オ'},
+  {c:'aizuchi', ja:'最高！',            zh:'太棒了！',      py:'tài bàng le',            k:'タイ バン ラ'},
+  {c:'aizuchi', ja:'わー！',            zh:'哇！',          py:'wā',                     k:'ワー'},
+  {c:'aizuchi', ja:'うそ！',            zh:'真的假的？',    py:'zhēn de jiǎ de',         k:'ジェン ダ ジア ダ'},
+  {c:'aizuchi', ja:'たしかに',          zh:'對啊',          py:'duì a',                  k:'ドゥイ ア'},
+  {c:'aizuchi', ja:'わかる',            zh:'我懂',          py:'wǒ dǒng',                k:'ウオ ドン'},
+  {c:'aizuchi', ja:'そうだね',          zh:'是啊',          py:'shì a',                  k:'シー ア'},
+  {c:'aizuchi', ja:'やった！',          zh:'太好了！',      py:'tài hǎo le',             k:'タイ ハオ ラ'},
+  {c:'aizuchi', ja:'かわいい！',        zh:'好可愛！',      py:'hǎo kě\u2019ài',         k:'ハオ クーアイ'},
+  {c:'aizuchi', ja:'おいしい！',        zh:'好好吃！',      py:'hǎo hǎo chī',            k:'ハオハオ チー'},
+  {c:'aizuchi', ja:'きれい！',          zh:'好漂亮！',      py:'hǎo piàoliang',          k:'ハオ ピャオリャン'},
+  {c:'aizuchi', ja:'楽しい！',          zh:'好開心！',      py:'hǎo kāixīn',             k:'ハオ カイシン'},
+  {c:'aizuchi', ja:'気持ちいい',        zh:'好舒服',        py:'hǎo shūfu',              k:'ハオ シューフ'},
+  {c:'aizuchi', ja:'こわい',            zh:'好可怕',        py:'hǎo kěpà',               k:'ハオ クーパー'},
+  {c:'aizuchi', ja:'眠い',              zh:'好想睡',        py:'hǎo xiǎng shuì',         k:'ハオ シャン シュイ'},
+  {c:'aizuchi', ja:'もう一回！',        zh:'再一次！',      py:'zài yí cì',              k:'ザイ イーツー'},
+
+  /* ---------- 挨拶・お礼 ---------- */
+  {c:'greet', ja:'おはよう',            zh:'早安',          py:'zǎo ān',                 k:'ザオ アン'},
+  {c:'greet', ja:'こんにちは',          zh:'你好',          py:'nǐ hǎo',                 k:'ニー ハオ'},
+  {c:'greet', ja:'こんばんは',          zh:'晚上好',        py:'wǎnshang hǎo',           k:'ワンシャン ハオ'},
+  {c:'greet', ja:'おやすみ',            zh:'晚安',          py:'wǎn\u2019ān',            k:'ワン アン'},
+  {c:'greet', ja:'はじめまして',        zh:'初次見面',      py:'chūcì jiànmiàn',         k:'チュー ツー ジエンミエン'},
+  {c:'greet', ja:'よろしくお願いします', zh:'請多指教',      py:'qǐng duō zhǐjiào',       k:'チン ドゥオ ジージャオ'},
+  {c:'greet', ja:'ありがとう',          zh:'謝謝！',        py:'xièxie',                 k:'シエシエ'},
+  {c:'greet', ja:'どうもありがとう',    zh:'非常感謝',      py:'fēicháng gǎnxiè',        k:'フェイチャン ガンシエ'},
+  {c:'greet', ja:'どういたしまして',    zh:'不客氣',        py:'bú kèqì',                k:'プー クーチー'},
+  {c:'greet', ja:'すみません',          zh:'不好意思',      py:'bù hǎoyìsi',             k:'プー ハオイースー'},
+  {c:'greet', ja:'ごめんなさい',        zh:'對不起',        py:'duìbuqǐ',                k:'ドゥイプチー'},
+  {c:'greet', ja:'大丈夫です',          zh:'沒關係',        py:'méi guānxi',             k:'メイ グアンシー'},
+  {c:'greet', ja:'またね',              zh:'再見',          py:'zàijiàn',                k:'ザイジエン'},
+  {c:'greet', ja:'また明日',            zh:'明天見',        py:'míngtiān jiàn',          k:'ミンティエン ジエン'},
+  {c:'greet', ja:'行ってきます',        zh:'我出門了',      py:'wǒ chūmén le',           k:'ウオ チューメン ラ'},
+  {c:'greet', ja:'おかえりなさい',      zh:'你回來了',      py:'nǐ huílái le',           k:'ニー ホイライ ラ'},
+  {c:'greet', ja:'気をつけてね',        zh:'路上小心',      py:'lùshang xiǎoxīn',        k:'ルーシャン シャオシン'},
+  {c:'greet', ja:'今日はありがとう',    zh:'今天謝謝你',    py:'jīntiān xièxie nǐ',      k:'ジンティエン シエシエ ニー'},
+  {c:'greet', ja:'お世話になりました',  zh:'謝謝你的照顧',  py:'xièxie nǐ de zhàogù',    k:'シエシエ ニー ダ ジャオグー'},
+
+  /* ---------- 気遣い・体調 ---------- */
+  {c:'care', ja:'疲れた？',             zh:'累了嗎？',      py:'lèi le ma',              k:'レイ ラ マ'},
+  {c:'care', ja:'寒い？',               zh:'會冷嗎？',      py:'huì lěng ma',            k:'ホイ ロン マ'},
+  {c:'care', ja:'暑い？',               zh:'會熱嗎？',      py:'huì rè ma',              k:'ホイ ルー マ'},
+  {c:'care', ja:'お腹すいた？',         zh:'肚子餓了嗎？',  py:'dùzi è le ma',           k:'ドゥーズー アー ラ マ'},
+  {c:'care', ja:'のどかわいた？',       zh:'口渴嗎？',      py:'kǒu kě le ma',           k:'コウ クー ラ マ'},
+  {c:'care', ja:'大丈夫？',             zh:'你還好嗎？',    py:'nǐ hái hǎo ma',          k:'ニー ハイ ハオ マ'},
+  {c:'care', ja:'休む？',               zh:'要休息一下嗎？', py:'yào xiūxi yíxià ma',    k:'ヤオ シウシー イーシャー マ'},
+  {c:'care', ja:'少し休もう',           zh:'我們休息一下吧', py:'wǒmen xiūxi yíxià ba',  k:'ウオメン シウシー イーシャー バ'},
+  {c:'care', ja:'気をつけて',           zh:'小心喔',        py:'xiǎoxīn o',              k:'シャオシン オ'},
+  {c:'care', ja:'無理しないで',         zh:'不要太勉強',    py:'búyào tài miǎnqiǎng',    k:'プーヤオ タイ ミエンチャン'},
+  {c:'care', ja:'具合はどう？',         zh:'身體還好嗎？',  py:'shēntǐ hái hǎo ma',      k:'シェンティー ハイ ハオ マ'},
+  {c:'care', ja:'トイレ行く？',         zh:'要去洗手間嗎？', py:'yào qù xǐshǒujiān ma',  k:'ヤオ チュー シーショウジエン マ'},
+  {c:'care', ja:'薬いる？',             zh:'要吃藥嗎？',    py:'yào chī yào ma',         k:'ヤオ チー ヤオ マ'},
+  {c:'care', ja:'水飲む？',             zh:'要喝水嗎？',    py:'yào hē shuǐ ma',         k:'ヤオ ハー シュイ マ'},
+  {c:'care', ja:'座る？',               zh:'要坐一下嗎？',  py:'yào zuò yíxià ma',       k:'ヤオ ズオ イーシャー マ'},
+  {c:'care', ja:'眠れる？',             zh:'睡得著嗎？',    py:'shuì de zháo ma',        k:'シュイ ダ ジャオ マ'},
+  {c:'care', ja:'病院行く？',           zh:'要去醫院嗎？',  py:'yào qù yīyuàn ma',       k:'ヤオ チュー イーユエン マ'},
+  {c:'care', ja:'大丈夫だよ',           zh:'沒問題的',      py:'méi wèntí de',           k:'メイ ウェンティー ダ'},
+
+  /* ---------- 食事・お買い物 ---------- */
+  {c:'food', ja:'どうぞ',               zh:'請用',          py:'qǐng yòng',              k:'チン ヨン'},
+  {c:'food', ja:'遠慮しないで',         zh:'不用客氣',      py:'búyòng kèqì',            k:'プーヨン クーチー'},
+  {c:'food', ja:'おかわりどう？',       zh:'要不要再來一碗？', py:'yào bu yào zài lái yì wǎn', k:'ヤオプヤオ ザイ ライ イーワン'},
+  {c:'food', ja:'もう一杯どう？',       zh:'再來一杯嗎？',  py:'zài lái yì bēi ma',      k:'ザイ ライ イーベイ マ'},
+  {c:'food', ja:'お会計お願いします',   zh:'我要結帳',      py:'wǒ yào jiézhàng',        k:'ウオ ヤオ ジエジャン'},
+  {c:'food', ja:'これください',         zh:'我要這個',      py:'wǒ yào zhège',           k:'ウオ ヤオ ジャーガ'},
+  {c:'food', ja:'いくらですか？',       zh:'多少錢？',      py:'duōshao qián',           k:'ドゥオシャオ チェン'},
+  {c:'food', ja:'カード使えますか？',   zh:'可以刷卡嗎？',  py:'kěyǐ shuākǎ ma',         k:'クーイー シュアカー マ'},
+  {c:'food', ja:'袋ください',           zh:'請給我袋子',    py:'qǐng gěi wǒ dàizi',      k:'チン ゲイ ウオ ダイズー'},
+  {c:'food', ja:'お土産見てます',       zh:'我在看伴手禮',  py:'wǒ zài kàn bànshǒulǐ',   k:'ウオ ザイ カン バンショウリー'},
+  {c:'food', ja:'おすすめは？',         zh:'有推薦的嗎？',  py:'yǒu tuījiàn de ma',      k:'ヨウ トゥイジエン ダ マ'},
+  {c:'food', ja:'辛くしないで',         zh:'不要辣',        py:'búyào là',               k:'プーヤオ ラー'},
+  {c:'food', ja:'アレルギーがあります', zh:'我有食物過敏',  py:'wǒ yǒu shíwù guòmǐn',    k:'ウオ ヨウ シーウー グオミン'},
+  {c:'food', ja:'おいしい！',           zh:'好好吃！',      py:'hǎo hǎo chī',            k:'ハオハオ チー'},
+  {c:'food', ja:'お腹いっぱい',         zh:'吃飽了',        py:'chī bǎo le',             k:'チー バオ ラ'},
+  {c:'food', ja:'ごちそうさまでした',   zh:'謝謝招待',      py:'xièxie zhāodài',         k:'シエシエ ジャオダイ'},
+  {c:'food', ja:'水ください',           zh:'請給我水',      py:'qǐng gěi wǒ shuǐ',       k:'チン ゲイ ウオ シュイ'},
+  {c:'food', ja:'温かいのをください',   zh:'我要熱的',      py:'wǒ yào rè de',           k:'ウオ ヤオ ルー ダ'},
+
+  /* ---------- 移動・写真 ---------- */
+  {c:'move', ja:'写真撮ろう！',         zh:'一起拍照吧！',  py:'yìqǐ pāizhào ba',        k:'イーチー パイジャオ バ'},
+  {c:'move', ja:'撮ってもらえる？',     zh:'可以幫我拍嗎？', py:'kěyǐ bāng wǒ pāi ma',   k:'クーイー バン ウオ パイ マ'},
+  {c:'move', ja:'車に乗ろう',           zh:'上車吧',        py:'shàng chē ba',           k:'シャン チャー バ'},
+  {c:'move', ja:'ちょっと待って',       zh:'等一下',        py:'děng yíxià',             k:'ドン イーシャー'},
+  {c:'move', ja:'もう一回お願い',       zh:'請再說一次',    py:'qǐng zài shuō yí cì',    k:'チン ザイ シュオ イーツー'},
+  {c:'move', ja:'ゆっくり話して',       zh:'請說慢一點',    py:'qǐng shuō màn yìdiǎn',   k:'チン シュオ マン イーディエン'},
+  {c:'move', ja:'ここで待ってて',       zh:'在這裡等我一下', py:'zài zhèlǐ děng wǒ yíxià', k:'ザイ ジャーリー ドン ウオ イーシャー'},
+  {c:'move', ja:'ここが絶景',           zh:'這裡風景很棒',  py:'zhèlǐ fēngjǐng hěn bàng', k:'ジャーリー フェンジン ヘン バン'},
+  {c:'move', ja:'あと10分',             zh:'再十分鐘',      py:'zài shí fēnzhōng',       k:'ザイ シーフェンジョン'},
+  {c:'move', ja:'トイレどこ？',         zh:'洗手間在哪裡？', py:'xǐshǒujiān zài nǎlǐ',   k:'シーショウジエン ザイ ナーリー'},
+  {c:'move', ja:'何時集合？',           zh:'幾點集合？',    py:'jǐ diǎn jíhé',           k:'ジーディエン ジーハー'},
+  {c:'move', ja:'出発するよ',           zh:'要出發了',      py:'yào chūfā le',           k:'ヤオ チューファー ラ'},
+  {c:'move', ja:'迷った',               zh:'迷路了',        py:'mí lù le',               k:'ミールー ラ'},
+  {c:'move', ja:'歩ける？',             zh:'走得動嗎？',    py:'zǒu de dòng ma',         k:'ゾウ ダ ドン マ'},
+  {c:'move', ja:'ゆっくり行こう',       zh:'我們慢慢走吧',  py:'wǒmen mànman zǒu ba',    k:'ウオメン マンマン ゾウ バ'},
+  {c:'move', ja:'こっちだよ',           zh:'這邊請',        py:'zhèbiān qǐng',           k:'ジャービエン チン'},
+  {c:'move', ja:'座ってていいよ',       zh:'可以坐著休息喔', py:'kěyǐ zuò zhe xiūxi o',  k:'クーイー ズオ ジャ シウシー オ'},
+  {c:'move', ja:'着いたよ',             zh:'到了',          py:'dào le',                 k:'ダオ ラ'},
+  {c:'move', ja:'帰ろう',               zh:'回家吧',        py:'huí jiā ba',             k:'ホイ ジア バ'},
+  {c:'move', ja:'何時に出る？',         zh:'幾點出發？',    py:'jǐ diǎn chūfā',          k:'ジーディエン チューファー'},
+
+  /* ---------- 車内・ドライブ ---------- */
+  {c:'drive', ja:'シートベルトしてね',  zh:'請繫好安全帶',  py:'qǐng xì hǎo ānquán dài', k:'チン シー ハオ アンチュエンタイ'},
+  {c:'drive', ja:'窓開ける？',          zh:'要開窗嗎？',    py:'yào kāi chuāng ma',      k:'ヤオ カイ チュアン マ'},
+  {c:'drive', ja:'エアコン調整するね',  zh:'我調一下冷氣',  py:'wǒ tiáo yíxià lěngqì',   k:'ウオ ティアオ イーシャー ロンチー'},
+  {c:'drive', ja:'車酔いした？',        zh:'暈車了嗎？',    py:'yūn chē le ma',          k:'ユン チャー ラ マ'},
+  {c:'drive', ja:'ここで休憩しよう',    zh:'在這裡休息一下吧', py:'zài zhèlǐ xiūxi yíxià ba', k:'ザイ ジャーリー シウシー イーシャー バ'},
+  {c:'drive', ja:'今充電してるよ',      zh:'現在在充電',    py:'xiànzài zài chōngdiàn',  k:'シエンザイ ザイ チョンディエン'},
+  {c:'drive', ja:'あと20分くらい',      zh:'大約還要二十分鐘', py:'dàyuē hái yào èrshí fēnzhōng', k:'ダーユエ ハイヤオ アルシーフェンジョン'},
+  {c:'drive', ja:'もうすぐ着くよ',      zh:'快到了',        py:'kuài dào le',            k:'クアイ ダオ ラ'},
+  {c:'drive', ja:'少し混んでる',        zh:'前面有點塞車',  py:'qiánmiàn yǒu diǎn sāichē', k:'チェンミエン ヨウディエン サイチャー'},
+  {c:'drive', ja:'シート倒していいよ',  zh:'可以把椅背往後倒', py:'kěyǐ bǎ yǐbèi wǎng hòu dǎo', k:'クーイー バー イーベイ ワン ホウ ダオ'},
+  {c:'drive', ja:'寒かったら言ってね',  zh:'冷的話跟我說',  py:'lěng de huà gēn wǒ shuō', k:'ロン ダ フア ゲン ウオ シュオ'},
+  {c:'drive', ja:'ここで降ります',      zh:'我在這裡下車',  py:'wǒ zài zhèlǐ xià chē',   k:'ウオ ザイ ジャーリー シャー チャー'},
+  {c:'drive', ja:'忘れ物ない？',        zh:'有沒有東西忘了拿？', py:'yǒu méi yǒu dōngxi wàng le ná', k:'ヨウメイヨウ ドンシー ワン ラ ナー'},
+  {c:'drive', ja:'寝てていいよ',        zh:'可以睡一下喔',  py:'kěyǐ shuì yíxià o',      k:'クーイー シュイ イーシャー オ'},
+  {c:'drive', ja:'安全運転で行くね',    zh:'我會小心開車',  py:'wǒ huì xiǎoxīn kāi chē', k:'ウオ ホイ シャオシン カイ チャー'},
+
+  /* ---------- 景色・感想 ---------- */
+  {c:'view', ja:'きれい！',             zh:'好漂亮！',      py:'hǎo piàoliang',          k:'ハオ ピャオリャン'},
+  {c:'view', ja:'紅葉がきれい',         zh:'楓葉好漂亮',    py:'fēngyè hǎo piàoliang',   k:'フェンイエ ハオ ピャオリャン'},
+  {c:'view', ja:'すごい景色',           zh:'風景好美',      py:'fēngjǐng hǎo měi',       k:'フェンジン ハオ メイ'},
+  {c:'view', ja:'気持ちいい！',         zh:'好舒服！',      py:'hǎo shūfu',              k:'ハオ シューフ'},
+  {c:'view', ja:'空気がおいしい',       zh:'空氣好新鮮',    py:'kōngqì hǎo xīnxiān',     k:'コンンチー ハオ シンシエン'},
+  {c:'view', ja:'ここが一番きれい',     zh:'這裡最漂亮',    py:'zhèlǐ zuì piàoliang',    k:'ジャーリー ズイ ピャオリャン'},
+  {c:'view', ja:'写真映えするね',       zh:'很適合拍照',    py:'hěn shìhé pāizhào',      k:'ヘン シーハー パイジャオ'},
+  {c:'view', ja:'また来たいね',         zh:'想再來一次',    py:'xiǎng zài lái yí cì',    k:'シャン ザイ ライ イーツー'},
+  {c:'view', ja:'ラッキー！',           zh:'好幸運！',      py:'hǎo xìngyùn',            k:'ハオ シンユン'},
+  {c:'view', ja:'いい天気！',           zh:'天氣真好！',    py:'tiānqì zhēn hǎo',        k:'ティエンチー ジェン ハオ'}
+];
+
+/* ============================================================
+   ことば（単語ビルダー用）
+   r = 役割: time / subj / place / obj / noun / verb / adj / q / want /
+             can / please / degree / together / again / neg / sugg / wh
+   ============================================================ */
+
+const WORD_CATS = [
+  { id: 'time',  label: 'いつ',   sub: '時間' },
+  { id: 'who',   label: 'だれ',   sub: '人' },
+  { id: 'noun',  label: '天気',   sub: '自然' },
+  { id: 'place', label: '場所',   sub: '乗物' },
+  { id: 'food',  label: 'たべもの', sub: '飲みもの' },
+  { id: 'verb',  label: 'どうさ', sub: '動詞' },
+  { id: 'adj',   label: 'ようす', sub: '気持ち' },
+  { id: 'func',  label: 'つなぐ', sub: 'きく' },
+  { id: 'mine',  label: '＋マイ', sub: '単語' }
+];
+
+const WORDS = [
+  /* ---- いつ（時間） ---- */
+  {c:'time', ja:'今日',   zh:'今天',   py:'jīntiān',   k:'ジンティエン', r:'time'},
+  {c:'time', ja:'明日',   zh:'明天',   py:'míngtiān',  k:'ミンティエン', r:'time'},
+  {c:'time', ja:'昨日',   zh:'昨天',   py:'zuótiān',   k:'ズオティエン', r:'time'},
+  {c:'time', ja:'今',     zh:'現在',   py:'xiànzài',   k:'シエンザイ',   r:'time'},
+  {c:'time', ja:'朝',     zh:'早上',   py:'zǎoshang',  k:'ザオシャン',   r:'time'},
+  {c:'time', ja:'お昼',   zh:'中午',   py:'zhōngwǔ',   k:'ジョンウー',   r:'time'},
+  {c:'time', ja:'夜',     zh:'晚上',   py:'wǎnshang',  k:'ワンシャン',   r:'time'},
+  {c:'time', ja:'週末',   zh:'週末',   py:'zhōumò',    k:'ジョウモー',   r:'time'},
+  {c:'time', ja:'もうすぐ', zh:'快要',  py:'kuàiyào',   k:'クアイヤオ',   r:'time'},
+  {c:'time', ja:'あとで', zh:'之後',   py:'zhīhòu',    k:'ジーホウ',     r:'time'},
+
+  /* ---- だれ（人） ---- */
+  {c:'who', ja:'わたし',   zh:'我',     py:'wǒ',      k:'ウオ',       r:'subj'},
+  {c:'who', ja:'あなた',   zh:'你',     py:'nǐ',      k:'ニー',       r:'subj'},
+  {c:'who', ja:'わたしたち', zh:'我們', py:'wǒmen',   k:'ウオメン',   r:'subj'},
+  {c:'who', ja:'みんな',   zh:'大家',   py:'dàjiā',   k:'ダージア',   r:'subj'},
+  {c:'who', ja:'家族',     zh:'家人',   py:'jiārén',  k:'ジアレン',   r:'subj'},
+  {c:'who', ja:'お母さん', zh:'媽媽',   py:'māma',    k:'マーマ',     r:'subj'},
+  {c:'who', ja:'お父さん', zh:'爸爸',   py:'bàba',    k:'バーバ',     r:'subj'},
+  {c:'who', ja:'友達',     zh:'朋友',   py:'péngyou', k:'ポンヨウ',   r:'subj'},
+  {c:'who', ja:'子供',     zh:'小孩',   py:'xiǎohái', k:'シャオハイ', r:'subj'},
+  {c:'who', ja:'おじいさん', zh:'爺爺', py:'yéye',    k:'イエイエ',   r:'subj'},
+
+  /* ---- 天気・自然 ---- */
+  {c:'noun', ja:'天気',   zh:'天氣',   py:'tiānqì',   k:'ティエンチー', r:'noun'},
+  {c:'noun', ja:'雨',     zh:'下雨',   py:'xiàyǔ',    k:'シャーユー',   r:'noun'},
+  {c:'noun', ja:'雪',     zh:'下雪',   py:'xiàxuě',   k:'シャーシュエ', r:'noun'},
+  {c:'noun', ja:'晴れ',   zh:'晴天',   py:'qíngtiān', k:'チンティエン', r:'noun'},
+  {c:'noun', ja:'くもり', zh:'陰天',   py:'yīntiān',  k:'インティエン', r:'noun'},
+  {c:'noun', ja:'風',     zh:'風',     py:'fēng',     k:'フォン',       r:'noun'},
+  {c:'noun', ja:'山',     zh:'山',     py:'shān',     k:'シャン',       r:'noun'},
+  {c:'noun', ja:'海',     zh:'海',     py:'hǎi',      k:'ハイ',         r:'noun'},
+  {c:'noun', ja:'川',     zh:'河',     py:'hé',       k:'ハー',         r:'noun'},
+  {c:'noun', ja:'紅葉',   zh:'楓葉',   py:'fēngyè',   k:'フェンイエ',   r:'noun'},
+  {c:'noun', ja:'空',     zh:'天空',   py:'tiānkōng', k:'ティエンコン', r:'noun'},
+  {c:'noun', ja:'星',     zh:'星星',   py:'xīngxing', k:'シンシン',     r:'noun'},
+
+  /* ---- 場所・乗り物 ---- */
+  {c:'place', ja:'トイレ',   zh:'洗手間', py:'xǐshǒujiān',      k:'シーショウジエン', r:'place'},
+  {c:'place', ja:'ホテル',   zh:'飯店',   py:'fàndiàn',         k:'ファンディエン',   r:'place'},
+  {c:'place', ja:'駅',       zh:'車站',   py:'chēzhàn',         k:'チャージャン',     r:'place'},
+  {c:'place', ja:'空港',     zh:'機場',   py:'jīchǎng',         k:'ジーチャン',       r:'place'},
+  {c:'place', ja:'病院',     zh:'醫院',   py:'yīyuàn',          k:'イーユエン',       r:'place'},
+  {c:'place', ja:'コンビニ', zh:'便利商店', py:'biànlì shāngdiàn', k:'ビエンリー シャンディエン', r:'place'},
+  {c:'place', ja:'駐車場',   zh:'停車場', py:'tíngchēchǎng',    k:'ティンチャーチャン', r:'place'},
+  {c:'place', ja:'温泉',     zh:'溫泉',   py:'wēnquán',         k:'ウェンチュエン',   r:'place'},
+  {c:'place', ja:'店',       zh:'店',     py:'diàn',            k:'ディエン',         r:'place'},
+  {c:'place', ja:'家',       zh:'家',     py:'jiā',             k:'ジア',             r:'place'},
+  {c:'place', ja:'ここ',     zh:'這裡',   py:'zhèlǐ',           k:'ジャーリー',       r:'place'},
+  {c:'place', ja:'あそこ',   zh:'那裡',   py:'nàlǐ',            k:'ナーリー',         r:'place'},
+  {c:'place', ja:'車',       zh:'車',     py:'chē',             k:'チャー',           r:'place'},
+  {c:'place', ja:'電車',     zh:'電車',   py:'diànchē',         k:'ディエンチャー',   r:'place'},
+  {c:'place', ja:'バス',     zh:'公車',   py:'gōngchē',         k:'ゴンチャー',       r:'place'},
+  {c:'place', ja:'飛行機',   zh:'飛機',   py:'fēijī',           k:'フェイジー',       r:'place'},
+
+  /* ---- 食べもの・飲みもの ---- */
+  {c:'food', ja:'ごはん',   zh:'飯',     py:'fàn',          k:'ファン',       r:'obj'},
+  {c:'food', ja:'ラーメン', zh:'拉麵',   py:'lāmiàn',       k:'ラーミエン',   r:'obj'},
+  {c:'food', ja:'そば',     zh:'蕎麥麵', py:'qiáomàimiàn',  k:'チャオマイミエン', r:'obj'},
+  {c:'food', ja:'コーヒー', zh:'咖啡',   py:'kāfēi',        k:'カーフェイ',   r:'obj'},
+  {c:'food', ja:'お茶',     zh:'茶',     py:'chá',          k:'チャー',       r:'obj'},
+  {c:'food', ja:'水',       zh:'水',     py:'shuǐ',         k:'シュイ',       r:'obj'},
+  {c:'food', ja:'ビール',   zh:'啤酒',   py:'píjiǔ',        k:'ピージウ',     r:'obj'},
+  {c:'food', ja:'肉',       zh:'肉',     py:'ròu',          k:'ロウ',         r:'obj'},
+  {c:'food', ja:'野菜',     zh:'青菜',   py:'qīngcài',      k:'チンツァイ',   r:'obj'},
+  {c:'food', ja:'甘いもの', zh:'甜點',   py:'tiándiǎn',     k:'ティエンディエン', r:'obj'},
+  {c:'food', ja:'果物',     zh:'水果',   py:'shuǐguǒ',      k:'シュイグオ',   r:'obj'},
+  {c:'food', ja:'卵',       zh:'蛋',     py:'dàn',          k:'ダン',         r:'obj'},
+
+  /* ---- どうさ（動詞） ---- */
+  {c:'verb', ja:'行く',   zh:'去',   py:'qù',        k:'チュー',       r:'verb', key:'go'},
+  {c:'verb', ja:'来る',   zh:'來',   py:'lái',       k:'ライ',         r:'verb', key:'come'},
+  {c:'verb', ja:'食べる', zh:'吃',   py:'chī',       k:'チー',         r:'verb', key:'eat'},
+  {c:'verb', ja:'飲む',   zh:'喝',   py:'hē',        k:'ハー',         r:'verb', key:'drink'},
+  {c:'verb', ja:'見る',   zh:'看',   py:'kàn',       k:'カン',         r:'verb', key:'see'},
+  {c:'verb', ja:'買う',   zh:'買',   py:'mǎi',       k:'マイ',         r:'verb', key:'buy'},
+  {c:'verb', ja:'休む',   zh:'休息', py:'xiūxi',     k:'シウシー',     r:'verb', key:'rest'},
+  {c:'verb', ja:'寝る',   zh:'睡',   py:'shuì',      k:'シュイ',       r:'verb', key:'sleep'},
+  {c:'verb', ja:'撮る',   zh:'拍照', py:'pāizhào',   k:'パイジャオ',   r:'verb', key:'photo'},
+  {c:'verb', ja:'歩く',   zh:'走',   py:'zǒu',       k:'ゾウ',         r:'verb', key:'walk'},
+  {c:'verb', ja:'待つ',   zh:'等',   py:'děng',      k:'ドン',         r:'verb', key:'wait'},
+  {c:'verb', ja:'帰る',   zh:'回去', py:'huíqù',     k:'ホイチュー',   r:'verb', key:'back'},
+  {c:'verb', ja:'乗る',   zh:'坐',   py:'zuò',       k:'ズオ',         r:'verb', key:'ride'},
+  {c:'verb', ja:'会う',   zh:'見面', py:'jiànmiàn',  k:'ジエンミエン', r:'verb', key:'meet'},
+  {c:'verb', ja:'払う',   zh:'付錢', py:'fùqián',    k:'フーチェン',   r:'verb', key:'pay'},
+  {c:'verb', ja:'疲れる', zh:'累',   py:'lèi',       k:'レイ',         r:'verb', key:'tire'},
+
+  /* ---- ようす・気持ち ---- */
+  {c:'adj', ja:'おいしい', zh:'好吃',   py:'hǎochī',    k:'ハオチー',     r:'adj'},
+  {c:'adj', ja:'きれい',   zh:'漂亮',   py:'piàoliang', k:'ピャオリャン', r:'adj'},
+  {c:'adj', ja:'楽しい',   zh:'開心',   py:'kāixīn',    k:'カイシン',     r:'adj'},
+  {c:'adj', ja:'うれしい', zh:'高興',   py:'gāoxìng',   k:'ガオシン',     r:'adj'},
+  {c:'adj', ja:'疲れた',   zh:'累',     py:'lèi',       k:'レイ',         r:'adj'},
+  {c:'adj', ja:'痛い',     zh:'痛',     py:'tòng',      k:'トン',         r:'adj'},
+  {c:'adj', ja:'寒い',     zh:'冷',     py:'lěng',      k:'ロン',         r:'adj'},
+  {c:'adj', ja:'暑い',     zh:'熱',     py:'rè',        k:'ルー',         r:'adj'},
+  {c:'adj', ja:'大きい',   zh:'大',     py:'dà',        k:'ダー',         r:'adj'},
+  {c:'adj', ja:'小さい',   zh:'小',     py:'xiǎo',      k:'シャオ',       r:'adj'},
+  {c:'adj', ja:'高い',     zh:'貴',     py:'guì',       k:'グイ',         r:'adj'},
+  {c:'adj', ja:'安い',     zh:'便宜',   py:'piányi',    k:'ピエンイー',   r:'adj'},
+  {c:'adj', ja:'よい',     zh:'好',     py:'hǎo',       k:'ハオ',         r:'adj'},
+
+  /* ---- きく・つなぐ ---- */
+  {c:'func', ja:'？',         zh:'嗎',     py:'ma',            k:'マ',            r:'q'},
+  {c:'func', ja:'〜したい',   zh:'想',     py:'xiǎng',         k:'シャン',        r:'want'},
+  {c:'func', ja:'〜できる',   zh:'可以',   py:'kěyǐ',          k:'クーイー',      r:'can'},
+  {c:'func', ja:'ください',   zh:'請給我', py:'qǐng gěi wǒ',   k:'チン ゲイ ウオ', r:'please'},
+  {c:'func', ja:'少し',       zh:'一點',   py:'yìdiǎn',        k:'イーディエン',  r:'degree'},
+  {c:'func', ja:'とても',     zh:'很',     py:'hěn',           k:'ヘン',          r:'degree'},
+  {c:'func', ja:'一緒に',     zh:'一起',   py:'yìqǐ',          k:'イーチー',      r:'together'},
+  {c:'func', ja:'〜しましょう', zh:'吧',   py:'ba',            k:'バ',            r:'sugg'},
+  {c:'func', ja:'〜しない',   zh:'不要',   py:'búyào',         k:'プーヤオ',      r:'neg'},
+  {c:'func', ja:'もう一度',   zh:'再一次', py:'zài yí cì',     k:'ザイ イーツー', r:'again'},
+  {c:'func', ja:'どこ',       zh:'哪裡',   py:'nǎlǐ',          k:'ナーリー',      r:'wh', key:'where'},
+  {c:'func', ja:'なに',       zh:'什麼',   py:'shénme',        k:'シェンマ',      r:'wh', key:'what'},
+  {c:'func', ja:'いくら',     zh:'多少錢', py:'duōshao qián',  k:'ドゥオシャオ チェン', r:'wh', key:'howmuch'},
+  {c:'func', ja:'だれ',       zh:'誰',     py:'shéi',          k:'シェイ',        r:'wh', key:'who'},
+  {c:'func', ja:'いつ',       zh:'什麼時候', py:'shénme shíhou', k:'シェンマ シーホウ', r:'wh', key:'when'},
+  {c:'func', ja:'〜と（and）', zh:'和',     py:'hé',            k:'ハー',          r:'conj'},
+  {c:'func', ja:'でも',       zh:'但是',   py:'dànshì',        k:'ダンシー',      r:'conj'},
+  {c:'func', ja:'〜がほしい', zh:'要',     py:'yào',           k:'ヤオ',          r:'want'}
+];
+
+</script>
+<script>
+/* ============================================================
+   台湾華語ワンタップ ─ 文づくりエンジン & UI
+   ============================================================ */
+
+/* ---------- 文づくりで使う部品（繁体字・ピンイン・カタカナ） ---------- */
+const T = (zh, py, k) => ({ zh, py, k });
+const CH = {
+  wo:    T('我', 'wǒ', 'ウオ'),
+  women: T('我們', 'wǒmen', 'ウオメン'),
+  ni:    T('你', 'nǐ', 'ニー'),
+  keyi:  T('可以', 'kěyǐ', 'クーイー'),
+  yao:   T('要', 'yào', 'ヤオ'),
+  xiang: T('想', 'xiǎng', 'シャン'),
+  bu:    T('不', 'bú', 'プー'),
+  hen:   T('很', 'hěn', 'ヘン'),
+  youdian: T('有點', 'yǒudiǎn', 'ヨウディエン'),
+  yixia: T('一下', 'yíxià', 'イーシャー'),
+  yiqi:  T('一起', 'yìqǐ', 'イーチー'),
+  ba:    T('吧', 'ba', 'バ'),
+  ma:    T('嗎', 'ma', 'マ'),
+  zai:   T('在', 'zài', 'ザイ'),
+  hui:   T('會', 'huì', 'ホイ'),
+  qing:  T('請', 'qǐng', 'チン'),
+  gei:   T('給', 'gěi', 'ゲイ'),
+  nali:  T('哪裡', 'nǎlǐ', 'ナーリー'),
+  shenme:T('什麼', 'shénme', 'シェンマ'),
+  duoshao: T('多少錢', 'duōshao qián', 'ドゥオシャオ チェン'),
+  zheshi: T('這是', 'zhè shì', 'ジャー シー')
+};
+
+/* ---------- 文を組み立てる ---------- */
+function compose(sel) {
+  const g = {
+    time: null, subj: null, place: null, obj: null, noun: null, verb: null, adj: null,
+    q: false, want: false, can: false, please: false, deg: null,
+    together: false, again: false, neg: false, sugg: false, wh: null
+  };
+  for (const w of sel) {
+    switch (w.r) {
+      case 'time':     g.time = g.time || w; break;
+      case 'subj':     g.subj = g.subj || w; break;
+      case 'place':    g.place = g.place || w; break;
+      case 'obj':      g.obj = g.obj || w; break;
+      case 'noun':     g.noun = g.noun || w; break;
+      case 'verb':     g.verb = g.verb || w; break;
+      case 'adj':      g.adj = g.adj || w; break;
+      case 'q':        g.q = true; break;
+      case 'want':     g.want = true; break;
+      case 'can':      g.can = true; break;
+      case 'please':   g.please = true; break;
+      case 'degree':   g.deg = g.deg || w; break;
+      case 'together': g.together = true; break;
+      case 'again':    g.again = true; break;
+      case 'neg':      g.neg = true; break;
+      case 'sugg':     g.sugg = true; break;
+      case 'wh':       g.wh = g.wh || w; break;
+    }
+  }
+
+  const S = [];
+  const put = (t) => { if (t) S.push(t); };
+  const finish = (end, ja, note) => {
+    const mark = end === '？' ? '?' : end === '！' ? '!' : '.';
+    const zh = S.map(x => x.zh).join('') + end;
+    const py = (S.map(x => x.py).join(' ').replace(/\s+/g, ' ').trim() + ' ' + mark).trim();
+    const kana = S.map(x => x.k).join(' ');
+    return { zh, py, kana, ja, note: note || '' };
+  };
+
+  const TOPIC = g.noun || g.place || g.obj;      /* 形容詞の対象になる名詞 */
+  const THING = g.obj || g.noun;                 /* 動詞の目的語 */
+  const SUBJ = g.subj;
+
+  /* ---- きく（疑問詞） ---- */
+  if (g.wh) {
+    if (g.wh.key === 'where') {
+      if (g.place || g.noun) {
+        put(g.place || g.noun); put(CH.zai); put(CH.nali);
+        return finish('？', `${(g.place || g.noun).ja}はどこ？`);
+      }
+      put(CH.zai); put(CH.nali);
+      return finish('？', 'どこ？');
+    }
+    if (g.wh.key === 'howmuch') {
+      if (THING) put(THING);
+      put(CH.duoshao);
+      return finish('？', `${THING ? THING.ja + 'は' : ''}いくら？`);
+    }
+    if (g.wh.key === 'what') {
+      put(CH.zheshi); put(CH.shenme);
+      return finish('？', 'これは何？');
+    }
+    if (g.wh.key === 'who') {
+      put(CH.zheshi); put(T('誰', 'shéi', 'シェイ'));
+      return finish('？', 'これは誰？');
+    }
+    if (g.wh.key === 'when') {
+      if (g.verb) {
+        put(T('什麼時候', 'shénme shíhou', 'シェンマ シーホウ')); put(g.verb);
+        return finish('？', `いつ${g.verb.ja}？`);
+      }
+      put(T('什麼時候', 'shénme shíhou', 'シェンマ シーホウ'));
+      return finish('？', 'いつ？');
+    }
+  }
+
+  /* ---- ください ---- */
+  if (g.please) {
+    const want = THING || g.place;
+    put(CH.qing); put(CH.gei); put(CH.wo);
+    if (want) put(want);
+    return finish('。', `${(want || { ja: 'これ' }).ja}をください`);
+  }
+
+  /* ---- 動詞がある ---- */
+  if (g.verb) {
+    const v = g.verb;
+    const VP = [];
+    const vput = (t) => VP.push(t);
+    let jaCore = '';
+
+    if (v.key === 'go') {
+      const dest = g.place || g.obj;
+      vput(v);
+      if (dest) { vput(dest); jaCore = `${dest.ja}に行く`; } else { jaCore = '行く'; }
+    } else if (v.key === 'come') {
+      vput(v); jaCore = '来る';
+    } else if (v.key === 'photo') {
+      vput(v); jaCore = '写真を撮る';
+    } else if (v.key === 'rest' || v.key === 'wait' || v.key === 'sleep') {
+      vput(v); vput(CH.yixia);
+      jaCore = v.key === 'rest' ? '休む' : v.key === 'wait' ? '待つ' : '寝る';
+    } else if (v.key === 'eat' || v.key === 'drink' || v.key === 'buy' ||
+               v.key === 'see' || v.key === 'ride') {
+      const target = g.obj || g.noun || g.place;
+      vput(v);
+      if (target) { vput(target); jaCore = `${target.ja}を${v.ja}`; } else { jaCore = v.ja; }
+    } else if (v.key === 'walk') {
+      vput(v); jaCore = '歩く';
+    } else if (v.key === 'back') {
+      vput(v); jaCore = '帰る';
+    } else if (v.key === 'meet') {
+      vput(v); jaCore = '会う';
+    } else if (v.key === 'pay') {
+      vput(v); jaCore = '払う';
+    } else if (v.key === 'tire') {
+      vput(v); jaCore = '疲れる';
+    } else {
+      vput(v); jaCore = v.ja;
+    }
+
+    /* 疑問文 */
+    if (g.q) {
+      if (SUBJ && SUBJ.zh === '你') {
+        put(SUBJ); put(CH.yao); VP.forEach(x => put(x));
+        return finish('？', `${jaCore}？`);
+      }
+      put(CH.wo); put(CH.keyi); VP.forEach(x => put(x));
+      return finish('？', `${jaCore}してもいい？`);
+    }
+    /* 〜したい */
+    if (g.want) {
+      put(SUBJ || CH.wo); put(CH.xiang); VP.forEach(x => put(x));
+      return finish('。', `${jaCore}したい`);
+    }
+    /* 一緒に〜しよう（写真は特に） */
+    if (g.together || (v.key === 'photo' && !SUBJ)) {
+      put(CH.women); put(CH.yiqi); VP.forEach(x => put(x)); put(CH.ba);
+      return finish('！', `一緒に${jaCore}しよう`);
+    }
+    /* 〜しない */
+    if (g.neg) {
+      put(SUBJ || CH.wo); put(CH.bu); VP.forEach(x => put(x));
+      return finish('。', `${jaCore}しない`);
+    }
+    /* 〜できる */
+    if (g.can) {
+      put(SUBJ || CH.wo); put(CH.keyi); VP.forEach(x => put(x));
+      return finish('。', `${jaCore}できる`);
+    }
+    /* 〜しましょう */
+    if (g.sugg) {
+      put(SUBJ || CH.women);
+      if (g.time) put(g.time);
+      VP.forEach(x => put(x)); put(CH.ba);
+      return finish('。', `${jaCore}しよう`);
+    }
+    /* ふつうの文 */
+    put(SUBJ || CH.wo);
+    if (g.time) put(g.time);
+    VP.forEach(x => put(x));
+    return finish(g.again ? '！' : '。', jaCore);
+  }
+
+  /* ---- 形容詞がある ---- */
+  if (g.adj) {
+    const a = g.adj;
+    const aJa = a.ja2 || a.ja;
+    if (g.q) {
+      if (SUBJ) { put(SUBJ); put(CH.hui); put(a); return finish('？', `${aJa}？`); }
+      if (TOPIC) { put(TOPIC); put(a); return finish('？', `${TOPIC.ja}は${aJa}？`); }
+      put(a);
+      return finish('？', `${aJa}？`);
+    }
+    const degSeg = (g.deg && g.deg.zh === '一點') ? CH.youdian : CH.hen;
+    if (TOPIC) {
+      if (g.time) put(g.time);
+      put(TOPIC); put(degSeg); put(a);
+      return finish('！', `${g.time ? g.time.ja + 'の' : ''}${TOPIC.ja}は${aJa}`);
+    }
+    if (g.time) put(g.time);
+    if (SUBJ) put(SUBJ);
+    put(degSeg); put(a);
+    return finish('！', `${SUBJ ? SUBJ.ja + 'は' : ''}${aJa}`);
+  }
+
+  /* ---- 名詞だけ ---- */
+  const list = sel.filter(w => w.r !== 'q');
+  if (!list.length) return null;
+  list.forEach(w => put(w));
+  return finish(g.q ? '？' : '。', list.map(w => w.ja).join('・'),
+    'ことばを足すと、もっと自然な文になるよ');
+}
+
+/* ============================================================
+   状態
+   ============================================================ */
+const STORE = 'taiwanTalk.v1';
+const state = {
+  tab: 'say',
+  sayCat: 'aizuchi',
+  wordCat: 'time',
+  tray: [],
+  query: '',
+  mine: []
+};
+
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE) || '{}');
+  if (Array.isArray(saved.mine)) state.mine = saved.mine;
+} catch (e) { /* ignore */ }
+
+function saveMine() {
+  try { localStorage.setItem(STORE, JSON.stringify({ mine: state.mine })); } catch (e) {}
+}
+
+/* ============================================================
+   読み上げ
+   ============================================================ */
+let voiceCache = [];
+function loadVoices() {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    voiceCache = window.speechSynthesis.getVoices() || [];
+  } catch (e) { voiceCache = []; }
+}
+if ('speechSynthesis' in window) {
+  loadVoices();
+  window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+}
+
+function speak(text) {
+  try {
+    if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+      toast('この端末は読み上げに未対応です。文字で見せてね');
+      return;
+    }
+    if (!voiceCache.length) loadVoices();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-TW';
+    u.rate = 0.88;
+    u.pitch = 1;
+    const vs = voiceCache;
+    const v = vs.find(x => /zh[-_]?(TW|Hant)/i.test(x.lang)) ||
+              vs.find(x => /^zh/i.test(x.lang)) ||
+              vs.find(x => /Chinese|中文|國語|台湾/i.test(x.name || ''));
+    if (v) u.voice = v;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  } catch (e) {
+    toast('読み上げができませんでした。文字で見せてね');
+  }
+}
+
+/* ============================================================
+   小さなユーティリティ
+   ============================================================ */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+let toastTimer = null;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 2200);
+}
+
+/* ============================================================
+   ひとこと（相槌）
+   ============================================================ */
+function renderSayCats() {
+  $('#say-cats').innerHTML = PHRASE_CATS.map(c => `
+    <button class="cat ${state.sayCat === c.id ? 'on' : ''}" data-say-cat="${c.id}">
+      <span class="cat-i">${c.icon}</span>${esc(c.label)}
+    </button>`).join('');
+}
+
+function renderSayGrid() {
+  const q = state.query.trim().toLowerCase();
+  const items = PHRASES.filter(p => {
+    if (q) return (p.ja + p.zh + p.py + p.k).toLowerCase().includes(q);
+    return p.c === state.sayCat;
+  });
+  const grid = $('#say-grid');
+  if (!items.length) {
+    grid.innerHTML = '<p class="empty">見つからなかったよ。ことばを変えてみてね</p>';
+    return;
+  }
+  grid.innerHTML = items.map(p => {
+    const i = PHRASES.indexOf(p);
+    return `<button class="ph" data-ph="${i}">
+      <span class="ph-ja">${esc(p.ja)}</span>
+      <span class="ph-zh">${esc(p.zh)}</span>
+    </button>`;
+  }).join('');
+}
+
+/* ============================================================
+   ことばビルダー
+   ============================================================ */
+function allWords() {
+  return WORDS.concat(state.mine);
+}
+
+function renderWordCats() {
+  const cats = WORD_CATS.map(c => `
+    <button class="cat ${state.wordCat === c.id ? 'on' : ''}" data-word-cat="${c.id}">
+      ${esc(c.label)}<span class="cat-s">${esc(c.sub)}</span>
+    </button>`).join('');
+  $('#word-cats').innerHTML = cats;
+}
+
+function renderWordGrid() {
+  const q = state.query.trim().toLowerCase();
+  const pool = allWords();
+  const items = pool.filter(w => {
+    if (q) return (w.ja + w.zh + w.py + w.k).toLowerCase().includes(q);
+    return w.c === state.wordCat;
+  });
+  const grid = $('#word-grid');
+
+  if (state.wordCat === 'mine' && !q) {
+    /* マイ単語：追加フォーム＋一覧 */
+    const mineList = state.mine.map(w => {
+      const idx = state.mine.indexOf(w);
+      return `<button class="chip" data-mine="${idx}">
+        <span class="c-ja">${esc(w.ja)}</span>
+        <span class="c-zh">${esc(w.zh)}</span>
+      </button>`;
+    }).join('');
+    grid.innerHTML = `
+      <div class="mine-add">
+        <div class="mine-row">
+          <input id="mine-ja" type="text" inputmode="text" placeholder="日本語（例：桜）" autocomplete="off">
+          <input id="mine-zh" type="text" inputmode="text" placeholder="台湾華語（例：櫻花）" autocomplete="off">
+        </div>
+        <div class="mine-row">
+          <select id="mine-role" aria-label="種類">
+            <option value="noun">もの・ことば</option>
+            <option value="place">場所</option>
+            <option value="obj">たべもの</option>
+            <option value="verb">どうさ</option>
+            <option value="adj">ようす</option>
+            <option value="time">いつ</option>
+            <option value="subj">ひと</option>
+          </select>
+          <button class="mine-btn" id="mine-add">＋ 追加</button>
+        </div>
+        <p class="mine-note">追加した単語はこの端末に保存されます。</p>
+      </div>
+      ${mineList ? `<div class="mine-grid">${mineList}</div>` : '<p class="empty">まだマイ単語はありません</p>'}
+    `;
+    return;
+  }
+
+  if (!items.length) {
+    grid.innerHTML = '<p class="empty">見つからなかったよ。ことばを変えてみてね</p>';
+    return;
+  }
+  grid.innerHTML = items.map(w => {
+    const i = pool.indexOf(w);
+    return `<button class="chip" data-word="${i}">
+      <span class="c-ja">${esc(w.ja)}</span>
+      <span class="c-zh">${esc(w.zh)}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderTray() {
+  const tray = $('#tray');
+  if (!state.tray.length) {
+    tray.innerHTML = '<span class="tray-empty">ことばをタップして並べてね</span>';
+  } else {
+    tray.innerHTML = state.tray.map((w, i) => `
+      <button class="pill" data-tray="${i}">${esc(w.ja)}<span class="x">×</span></button>
+    `).join('');
+  }
+  const ok = $('#ok');
+  ok.disabled = state.tray.length === 0;
+  ok.classList.toggle('ready', state.tray.length > 0);
+  $('#tray-count').textContent = state.tray.length ? `${state.tray.length}語` : '';
+}
+
+/* ============================================================
+   全画面カード
+   ============================================================ */
+let modalData = null;
+
+function openCard(data) {
+  modalData = data;
+  $('#card-ja').textContent = data.ja || '';
+  $('#card-note').textContent = data.note || '';
+  $('#card-note').style.display = data.note ? 'block' : 'none';
+  $('#card-zh').textContent = data.zh;
+  $('#card-kana').textContent = data.kana || '';
+  $('#card-py').textContent = data.py || '';
+  $('#modal').hidden = false;
+  requestAnimationFrame(() => $('#modal').classList.add('on'));
+  document.body.classList.add('locked');
+  fitZh();
+}
+
+function closeCard() {
+  const m = $('#modal');
+  m.classList.remove('on');
+  document.body.classList.remove('locked');
+  setTimeout(() => { m.hidden = true; }, 180);
+}
+
+function fitZh() {
+  const el = $('#card-zh');
+  if (!el) return;
+  const len = (el.textContent || '').length;
+  let size = 15;                       /* vw換算の出発点 */
+  if (len > 8) size = 11.5;
+  if (len > 12) size = 9.5;
+  if (len > 18) size = 7.6;
+  if (len > 26) size = 6.2;
+  el.style.fontSize = `clamp(2rem, ${size}vw, 6rem)`;
+}
+
+/* ============================================================
+   イベント
+   ============================================================ */
+function setTab(tab) {
+  state.tab = tab;
+  state.query = '';
+  const s1 = $('#say-search'), s2 = $('#word-search');
+  if (s1) s1.value = '';
+  if (s2) s2.value = '';
+  $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  $$('.panel').forEach(p => p.classList.toggle('on', p.id === `tab-${tab}`));
+  $('#tray-dock').hidden = tab !== 'build';
+  if (tab === 'say') { renderSayCats(); renderSayGrid(); }
+  else { renderWordCats(); renderWordGrid(); renderTray(); }
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function bind() {
+  $$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+  /* ひとこと */
+  $('#say-cats').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-say-cat]');
+    if (!b) return;
+    state.sayCat = b.dataset.sayCat;
+    renderSayCats(); renderSayGrid();
+  });
+  $('#say-grid').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ph]');
+    if (!b) return;
+    const p = PHRASES[Number(b.dataset.ph)];
+    openCard(p);
+    speak(p.zh);
+  });
+  $('#say-search').addEventListener('input', (e) => {
+    state.query = e.target.value;
+    renderSayGrid();
+  });
+
+  /* ことば */
+  $('#word-cats').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-word-cat]');
+    if (!b) return;
+    state.wordCat = b.dataset.wordCat;
+    state.query = '';
+    $('#word-search').value = '';
+    renderWordCats(); renderWordGrid();
+  });
+  $('#word-grid').addEventListener('click', (e) => {
+    const addBtn = e.target.closest('#mine-add');
+    if (addBtn) { addMine(); return; }
+    const chip = e.target.closest('[data-word], [data-mine]');
+    if (!chip) return;
+    if (chip.dataset.mine !== undefined) {
+      const w = state.mine[Number(chip.dataset.mine)];
+      if (w) { state.tray.push(w); renderTray(); }
+      return;
+    }
+    const w = allWords()[Number(chip.dataset.word)];
+    if (w) { state.tray.push(w); renderTray(); }
+  });
+  $('#word-search').addEventListener('input', (e) => {
+    state.query = e.target.value;
+    renderWordGrid();
+  });
+  $('#tray').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tray]');
+    if (!b) return;
+    state.tray.splice(Number(b.dataset.tray), 1);
+    renderTray();
+  });
+  $('#clear').addEventListener('click', () => { state.tray = []; renderTray(); });
+  $('#ok').addEventListener('click', () => {
+    const res = compose(state.tray);
+    if (!res) return;
+    openCard(res);
+    speak(res.zh);
+  });
+
+  /* カード */
+  $('#modal').addEventListener('click', (e) => {
+    if (e.target.closest('.card-close') || e.target.id === 'modal') closeCard();
+  });
+  $('#speak').addEventListener('click', () => { if (modalData) speak(modalData.zh); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCard();
+  });
+  window.addEventListener('resize', fitZh);
+}
+
+function addMine() {
+  const ja = ($('#mine-ja').value || '').trim();
+  const zh = ($('#mine-zh').value || '').trim();
+  const role = $('#mine-role').value;
+  if (!ja || !zh) { toast('日本語と台湾華語の両方を入れてね'); return; }
+  state.mine.push({ c: 'mine', ja, zh, py: '', k: '', r: role, key: 'custom' });
+  saveMine();
+  renderWordGrid();
+  renderTray();
+  toast(`「${ja}」を追加したよ`);
+}
+
+/* ============================================================
+   起動
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  bind();
+  renderSayCats();
+  renderSayGrid();
+  renderWordCats();
+  renderWordGrid();
+  renderTray();
+  $('#phrase-count').textContent = PHRASES.length;
+  $('#word-count').textContent = WORDS.length;
+});
+
+</script>
+</body>
+</html>
