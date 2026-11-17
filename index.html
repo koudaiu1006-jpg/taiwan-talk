@@ -528,9 +528,9 @@ const WORDS = [
   {c:'noun', ja:'晴れ',   zh:'晴天',   py:'qíngtiān', k:'チンティエン', r:'noun'},
   {c:'noun', ja:'くもり', zh:'陰天',   py:'yīntiān',  k:'インティエン', r:'noun'},
   {c:'noun', ja:'風',     zh:'風',     py:'fēng',     k:'フォン',       r:'noun'},
-  {c:'noun', ja:'山',     zh:'山',     py:'shān',     k:'シャン',       r:'noun'},
-  {c:'noun', ja:'海',     zh:'海',     py:'hǎi',      k:'ハイ',         r:'noun'},
-  {c:'noun', ja:'川',     zh:'河',     py:'hé',       k:'ハー',         r:'noun'},
+  {c:'noun', ja:'山',     zh:'山',     py:'shān',     k:'シャン',       r:'noun', tail:{zh:'上', py:'shang', k:'シャン'}},
+  {c:'noun', ja:'海',     zh:'海',     py:'hǎi',      k:'ハイ',         r:'noun', tail:{zh:'邊', py:'bian', k:'ビエン'}},
+  {c:'noun', ja:'川',     zh:'河',     py:'hé',       k:'ハー',         r:'noun', tail:{zh:'邊', py:'bian', k:'ビエン'}},
   {c:'noun', ja:'紅葉',   zh:'楓葉',   py:'fēngyè',   k:'フェンイエ',   r:'noun'},
   {c:'noun', ja:'空',     zh:'天空',   py:'tiānkōng', k:'ティエンコン', r:'noun'},
   {c:'noun', ja:'星',     zh:'星星',   py:'xīngxing', k:'シンシン',     r:'noun'},
@@ -775,11 +775,16 @@ function compose(sel) {
     if (v.key === 'go') {
       const dest = g.place || g.obj || g.noun;
       VP.push(v);
-      if (dest) { VP.push(dest); jaPre = `${dest.ja}に`; }
+      if (dest) {
+        VP.push(dest);
+        if (dest.tail) VP.push(T(dest.tail.zh, dest.tail.py, dest.tail.k));
+        jaPre = `${dest.ja}に`;
+      }
     } else if (v.key === 'rest' || v.key === 'sleep' || v.key === 'wait') {
       if (g.place) { VP.push(CH.zai); VP.push(g.place); jaPre = `${g.place.ja}で`; }
       VP.push(v); VP.push(CH.yixia);
     } else if (v.key === 'photo') {
+      if (g.place) { VP.push(CH.zai); VP.push(g.place); jaPre = `${g.place.ja}で`; }
       VP.push(v);
     } else if (v.key === 'walk' || v.key === 'back' || v.key === 'meet' ||
                v.key === 'pay' || v.key === 'come' || v.key === 'tire') {
