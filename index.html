@@ -489,6 +489,7 @@ const WORD_CATS = [
   { id: 'noun',  label: '天気',   sub: '自然' },
   { id: 'place', label: '場所',   sub: '乗物' },
   { id: 'food',  label: 'たべもの', sub: '飲みもの' },
+  { id: 'thing', label: 'もの',   sub: '品物' },
   { id: 'verb',  label: 'どうさ', sub: '動詞' },
   { id: 'adj',   label: 'ようす', sub: '気持ち' },
   { id: 'func',  label: 'つなぐ', sub: 'きく' },
@@ -566,6 +567,14 @@ const WORDS = [
   {c:'food', ja:'果物',     zh:'水果',   py:'shuǐguǒ',      k:'シュイグオ',   r:'obj'},
   {c:'food', ja:'卵',       zh:'蛋',     py:'dàn',          k:'ダン',         r:'obj'},
 
+  /* ---- もの ---- */
+  {c:'thing', ja:'写真',   zh:'照片',   py:'zhàopiàn',     k:'ジャオピエン', r:'obj'},
+  {c:'thing', ja:'お土産', zh:'伴手禮', py:'bànshǒulǐ',    k:'バンショウリー', r:'obj'},
+  {c:'thing', ja:'傘',     zh:'雨傘',   py:'yǔsǎn',        k:'ユーサン',     r:'obj'},
+  {c:'thing', ja:'お金',   zh:'錢',     py:'qián',         k:'チェン',       r:'obj'},
+  {c:'thing', ja:'切符',   zh:'票',     py:'piào',         k:'ピャオ',       r:'obj'},
+  {c:'thing', ja:'地図',   zh:'地圖',   py:'dìtú',         k:'ディートゥー', r:'obj'},
+
   /* ---- どうさ（動詞） ---- */
   {c:'verb', ja:'行く',   zh:'去',   py:'qù',        k:'チュー',       r:'verb', key:'go'},
   {c:'verb', ja:'来る',   zh:'來',   py:'lái',       k:'ライ',         r:'verb', key:'come'},
@@ -597,7 +606,7 @@ const WORDS = [
   {c:'adj', ja:'小さい',   zh:'小',     py:'xiǎo',      k:'シャオ',       r:'adj'},
   {c:'adj', ja:'高い',     zh:'貴',     py:'guì',       k:'グイ',         r:'adj'},
   {c:'adj', ja:'安い',     zh:'便宜',   py:'piányi',    k:'ピエンイー',   r:'adj'},
-  {c:'adj', ja:'よい',     zh:'好',     py:'hǎo',       k:'ハオ',         r:'adj'},
+  {c:'adj', ja:'よい',     zh:'好',     py:'hǎo',       k:'ハオ',         r:'adj', ja2:'いい'},
 
   /* ---- きく・つなぐ ---- */
   {c:'func', ja:'？',         zh:'嗎',     py:'ma',            k:'マ',            r:'q'},
@@ -652,6 +661,26 @@ const CH = {
   zheshi: T('這是', 'zhè shì', 'ジャー シー')
 };
 
+/* ---------- 動詞の日本語形（意味表示用） ---------- */
+const VF = {
+  go:    { base: '行く',       te: '行って',       tai: '行きたい',       vol: '行こう' },
+  come:  { base: '来る',       te: '来て',         tai: '来たい',         vol: '来よう' },
+  eat:   { base: '食べる',     te: '食べて',       tai: '食べたい',       vol: '食べよう' },
+  drink: { base: '飲む',       te: '飲んで',       tai: '飲みたい',       vol: '飲もう' },
+  see:   { base: '見る',       te: '見て',         tai: '見たい',         vol: '見よう' },
+  buy:   { base: '買う',       te: '買って',       tai: '買いたい',       vol: '買おう' },
+  rest:  { base: '休む',       te: '休んで',       tai: '休みたい',       vol: '休もう' },
+  sleep: { base: '寝る',       te: '寝て',         tai: '寝たい',         vol: '寝よう' },
+  photo: { base: '写真を撮る', te: '写真を撮って', tai: '写真を撮りたい', vol: '写真を撮ろう' },
+  walk:  { base: '歩く',       te: '歩いて',       tai: '歩きたい',       vol: '歩こう' },
+  wait:  { base: '待つ',       te: '待って',       tai: '待ちたい',       vol: '待とう' },
+  back:  { base: '帰る',       te: '帰って',       tai: '帰りたい',       vol: '帰ろう' },
+  ride:  { base: '乗る',       te: '乗って',       tai: '乗りたい',       vol: '乗ろう' },
+  meet:  { base: '会う',       te: '会って',       tai: '会いたい',       vol: '会おう' },
+  pay:   { base: '払う',       te: '払って',       tai: '払いたい',       vol: '払おう' },
+  tire:  { base: '疲れる',     te: '疲れて',       tai: '疲れたい',       vol: '疲れよう' }
+};
+
 /* ---------- 文を組み立てる ---------- */
 function compose(sel) {
   const g = {
@@ -686,7 +715,7 @@ function compose(sel) {
   const finish = (end, ja, note) => {
     const mark = end === '？' ? '?' : end === '！' ? '!' : '.';
     const zh = S.map(x => x.zh).join('') + end;
-    const py = (S.map(x => x.py).join(' ').replace(/\s+/g, ' ').trim() + ' ' + mark).trim();
+    const py = S.map(x => x.py).join(' ').replace(/\s+/g, ' ').trim() + mark;
     const kana = S.map(x => x.k).join(' ');
     return { zh, py, kana, ja, note: note || '' };
   };
@@ -739,81 +768,72 @@ function compose(sel) {
   /* ---- 動詞がある ---- */
   if (g.verb) {
     const v = g.verb;
+    const F = VF[v.key] || { base: v.ja, te: v.ja, tai: v.ja, vol: v.ja };
     const VP = [];
-    const vput = (t) => VP.push(t);
-    let jaCore = '';
+    let jaPre = '';
 
     if (v.key === 'go') {
-      const dest = g.place || g.obj;
-      vput(v);
-      if (dest) { vput(dest); jaCore = `${dest.ja}に行く`; } else { jaCore = '行く'; }
-    } else if (v.key === 'come') {
-      vput(v); jaCore = '来る';
+      const dest = g.place || g.obj || g.noun;
+      VP.push(v);
+      if (dest) { VP.push(dest); jaPre = `${dest.ja}に`; }
+    } else if (v.key === 'rest' || v.key === 'sleep' || v.key === 'wait') {
+      if (g.place) { VP.push(CH.zai); VP.push(g.place); jaPre = `${g.place.ja}で`; }
+      VP.push(v); VP.push(CH.yixia);
     } else if (v.key === 'photo') {
-      vput(v); jaCore = '写真を撮る';
-    } else if (v.key === 'rest' || v.key === 'wait' || v.key === 'sleep') {
-      vput(v); vput(CH.yixia);
-      jaCore = v.key === 'rest' ? '休む' : v.key === 'wait' ? '待つ' : '寝る';
-    } else if (v.key === 'eat' || v.key === 'drink' || v.key === 'buy' ||
-               v.key === 'see' || v.key === 'ride') {
-      const target = g.obj || g.noun || g.place;
-      vput(v);
-      if (target) { vput(target); jaCore = `${target.ja}を${v.ja}`; } else { jaCore = v.ja; }
-    } else if (v.key === 'walk') {
-      vput(v); jaCore = '歩く';
-    } else if (v.key === 'back') {
-      vput(v); jaCore = '帰る';
-    } else if (v.key === 'meet') {
-      vput(v); jaCore = '会う';
-    } else if (v.key === 'pay') {
-      vput(v); jaCore = '払う';
-    } else if (v.key === 'tire') {
-      vput(v); jaCore = '疲れる';
+      VP.push(v);
+    } else if (v.key === 'walk' || v.key === 'back' || v.key === 'meet' ||
+               v.key === 'pay' || v.key === 'come' || v.key === 'tire') {
+      VP.push(v);
     } else {
-      vput(v); jaCore = v.ja;
+      /* eat / drink / buy / see / ride など：目的語をとる */
+      const target = g.obj || g.noun || g.place;
+      VP.push(v);
+      if (target) { VP.push(target); jaPre = `${target.ja}を`; }
     }
 
     /* 疑問文 */
     if (g.q) {
       if (SUBJ && SUBJ.zh === '你') {
-        put(SUBJ); put(CH.yao); VP.forEach(x => put(x));
-        return finish('？', `${jaCore}？`);
+        put(SUBJ); put(CH.yao); VP.forEach(x => put(x)); put(CH.ma);
+        return finish('？', `${jaPre}${F.base}？`);
       }
-      put(CH.wo); put(CH.keyi); VP.forEach(x => put(x));
-      return finish('？', `${jaCore}してもいい？`);
+      put(CH.wo); put(CH.keyi); VP.forEach(x => put(x)); put(CH.ma);
+      return finish('？', `${jaPre}${F.te}もいい？`);
     }
     /* 〜したい */
     if (g.want) {
       put(SUBJ || CH.wo); put(CH.xiang); VP.forEach(x => put(x));
-      return finish('。', `${jaCore}したい`);
+      return finish('。', `${jaPre}${F.tai}`);
     }
     /* 一緒に〜しよう（写真は特に） */
     if (g.together || (v.key === 'photo' && !SUBJ)) {
-      put(CH.women); put(CH.yiqi); VP.forEach(x => put(x)); put(CH.ba);
-      return finish('！', `一緒に${jaCore}しよう`);
+      put(CH.women);
+      if (g.time) put(g.time);
+      put(CH.yiqi); VP.forEach(x => put(x)); put(CH.ba);
+      return finish('！', `一緒に${jaPre}${F.vol}`);
     }
     /* 〜しない */
     if (g.neg) {
       put(SUBJ || CH.wo); put(CH.bu); VP.forEach(x => put(x));
-      return finish('。', `${jaCore}しない`);
+      return finish('。', `${jaPre}${F.tai.replace(/たい$/, 'たくない')}`);
     }
     /* 〜できる */
     if (g.can) {
       put(SUBJ || CH.wo); put(CH.keyi); VP.forEach(x => put(x));
-      return finish('。', `${jaCore}できる`);
+      return finish('。', `${jaPre}${F.base}ことができる`);
     }
     /* 〜しましょう */
     if (g.sugg) {
       put(SUBJ || CH.women);
       if (g.time) put(g.time);
       VP.forEach(x => put(x)); put(CH.ba);
-      return finish('。', `${jaCore}しよう`);
+      return finish('。', `${jaPre}${F.vol}`);
     }
     /* ふつうの文 */
     put(SUBJ || CH.wo);
     if (g.time) put(g.time);
     VP.forEach(x => put(x));
-    return finish(g.again ? '！' : '。', jaCore);
+    return finish(g.again ? '！' : '。', `${jaPre}${F.base}`);
   }
 
   /* ---- 形容詞がある ---- */
@@ -821,9 +841,9 @@ function compose(sel) {
     const a = g.adj;
     const aJa = a.ja2 || a.ja;
     if (g.q) {
-      if (SUBJ) { put(SUBJ); put(CH.hui); put(a); return finish('？', `${aJa}？`); }
-      if (TOPIC) { put(TOPIC); put(a); return finish('？', `${TOPIC.ja}は${aJa}？`); }
-      put(a);
+      if (SUBJ) { put(SUBJ); put(CH.hui); put(a); put(CH.ma); return finish('？', `${SUBJ.ja}は${aJa}？`); }
+      if (TOPIC) { put(TOPIC); put(CH.hui); put(a); put(CH.ma); return finish('？', `${TOPIC.ja}は${aJa}？`); }
+      put(a); put(CH.ma);
       return finish('？', `${aJa}？`);
     }
     const degSeg = (g.deg && g.deg.zh === '一點') ? CH.youdian : CH.hen;
@@ -836,6 +856,13 @@ function compose(sel) {
     if (SUBJ) put(SUBJ);
     put(degSeg); put(a);
     return finish('！', `${SUBJ ? SUBJ.ja + 'は' : ''}${aJa}`);
+  }
+
+  /* ---- 名詞だけ：〜はどう？ ---- */
+  if (g.q && TOPIC) {
+    if (g.time) put(g.time);
+    put(TOPIC); put(T('怎麼樣', 'zěnmeyàng', 'ゼンマヤン'));
+    return finish('？', `${TOPIC.ja}はどう？`);
   }
 
   /* ---- 名詞だけ ---- */
@@ -1049,7 +1076,7 @@ function openCard(data) {
   $('#card-note').textContent = data.note || '';
   $('#card-note').style.display = data.note ? 'block' : 'none';
   $('#card-zh').textContent = data.zh;
-  $('#card-kana').textContent = data.kana || '';
+  $('#card-kana').textContent = data.kana || data.k || '';
   $('#card-py').textContent = data.py || '';
   $('#modal').hidden = false;
   requestAnimationFrame(() => $('#modal').classList.add('on'));
